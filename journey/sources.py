@@ -3,15 +3,16 @@ import socketserver
 import queue
 
 
-def tcp_server_source(host, port):
+def tcp_server_source(host, port, block_size=1024):
+    INIT = '@@qinit'
     main_queue = queue.Queue()
 
     class ThreadedTCPRequestHandler(socketserver.BaseRequestHandler):
         def handle(self):
-            main_queue.put('@@qinit')
+            main_queue.put(INIT)
             while True:
                 try:
-                    data = self.request.recv(1024)
+                    data = self.request.recv(block_size)
                     main_queue.put(data)
                     self.request.sendall(data)
                 except:
@@ -32,7 +33,7 @@ def tcp_server_source(host, port):
     counter = 0
     while True:
         msg = main_queue.get()
-        if msg == '@@qinit': counter += 1
+        if msg == INIT: counter += 1
         elif not msg: counter -= 1
         else: yield msg
         main_queue.task_done()
