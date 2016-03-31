@@ -1,2 +1,2 @@
-provided = '@@PROVIDED'
+consumer = '@@CONSUMER'
 provider = '@@PROVIDER'

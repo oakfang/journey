@@ -1,16 +1,16 @@
 import inspect
-from .annotations import (provided, provider)
+from .annotations import (consumer, provider)
 
 
 def sort_by_providers(procs):
     sigs = {proc: inspect.signature(proc) for proc in procs}
-    sorted_procs = [p for (p, sig) in sigs.items() if provided not in [prm.annotation for prm in sig.parameters.values()]]
+    sorted_procs = [p for (p, sig) in sigs.items() if consumer not in [prm.annotation for prm in sig.parameters.values()]]
     provided_data = {prm.name for proc in sorted_procs for prm in sigs[proc].parameters.values()}
     procs = procs.difference(sorted_procs)
     while procs:
         any_added = False
         for proc in list(procs):
-            proc_provided = {prm.name for prm in sigs[proc].parameters.values() if prm.annotation == provided}
+            proc_provided = {prm.name for prm in sigs[proc].parameters.values() if prm.annotation == consumer}
             if not proc_provided.difference(provided_data):
                 procs.remove(proc)
                 provided_data.update({prm.name for prm in sigs[proc].parameters.values() if prm.annotation == provider})
@@ -48,9 +48,10 @@ class System:
         procs = {getattr(cls, func) for func in dir(cls) if func.startswith('process_')}
         consumers = [provide(proc, self.data) for proc in sort_by_providers({f for f in procs if inspect.isgeneratorfunction(f)})]
         oracles = sort_by_providers(procs.difference(consumers))
-        for consumer in consumers: consumer.send(None)
+        for cons in consumers: cons.send(None)
         for item in self.iter_source():
-            for consumer in consumers: consumer.send(item)
+            for cons in consumers: cons.send(item)
+        for cons in consumers: cons.close()
         for oracle in oracles:
             provide(oracle, self.data)
         return self.data
