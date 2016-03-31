@@ -1,0 +1,2 @@
+provided = '@@PROVIDED'
+provider = '@@PROVIDER'
