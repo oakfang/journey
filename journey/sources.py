@@ -3,6 +3,27 @@ import socketserver
 import queue
 
 
+def multiplex(genlist):
+    item_q = queue.Queue()
+    def run_one(source, source_id):
+        for item in source: item_q.put((source_id, item))
+
+    def run_all():
+        thrlist = []
+        for (index, source) in enumerate(genlist):
+            t = threading.Thread(target=run_one,args=(source, index))
+            t.start()
+            thrlist.append(t)
+        for t in thrlist: t.join()
+        item_q.put(StopIteration)
+
+    threading.Thread(target=run_all).start()
+    while True:
+        item = item_q.get()
+        if item is StopIteration: return
+        yield item
+
+
 def tcp_server_source(host, port, block_size=1024):
     INIT = '@@qinit'
     main_queue = queue.Queue()
