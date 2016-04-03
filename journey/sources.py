@@ -10,8 +10,8 @@ def multiplex(genlist):
 
     def run_all():
         thrlist = []
-        for (index, source) in enumerate(genlist):
-            t = threading.Thread(target=run_one,args=(source, index))
+        for (source_id, source) in enumerate(genlist) if isinstance(genlist, list) else genlist.items():
+            t = threading.Thread(target=run_one,args=(source, source_id))
             t.start()
             thrlist.append(t)
         for t in thrlist: t.join()

@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='journey',
-      version='0.1.1',
+      version='0.1.2',
       description='A pluginable input processing system (python 3)',
       url='http://github.com/oakfang/journey',
       author='Alon Niv',
