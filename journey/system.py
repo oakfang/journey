@@ -30,6 +30,7 @@ def provide(proc, data_types):
 
 class System:
     DATA_TYPES = {}
+    PLUGINS = set()
 
     def __init__(self, source):
         self.source = source
@@ -44,13 +45,14 @@ class System:
             yield item
 
     def run(self):
-        cls = self.__class__
-        procs = {getattr(cls, func) for func in dir(cls) if func.startswith('process_')}
+        procs = self.PLUGINS
         consumers = [provide(proc, self.data) for proc in sort_by_providers({f for f in procs if inspect.isgeneratorfunction(f)})]
         oracles = sort_by_providers(procs.difference(consumers))
         for cons in consumers: cons.send(None)
         for item in self.iter_source():
-            for cons in consumers: cons.send(item)
+            for cons in list(consumers):
+                try: cons.send(item)
+                except StopIteration: consumers.remove(cons)
         for cons in consumers: cons.close()
         for oracle in oracles:
             provide(oracle, self.data)

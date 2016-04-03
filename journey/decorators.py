@@ -1,5 +1,5 @@
 def plugin(cls):
     def _outer(method):
-        setattr(cls, method.__name__, method)
+        cls.PLUGINS.add(method)
         return method
     return _outer
